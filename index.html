@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Climate Intelligence Dashboard</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            emerald: { DEFAULT: '#10b981' },
+            cyan:    { DEFAULT: '#06b6d4' },
+            amber:   { DEFAULT: '#f59e0b' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
+
+  <!-- ========== HEADER ========== -->
+  <header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/60">
+    <div class="max-w-screen-xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-100 leading-tight">Climate Intelligence Dashboard</h1>
+          <p class="text-xs text-slate-400 font-medium tracking-wide">Sustainability & ESG Analytics Platform</p>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <label for="filter-region" class="text-xs text-slate-400 font-medium uppercase tracking-wider whitespace-nowrap">Region</label>
+          <select id="filter-region" class="filter-select">
+            <option value="all">All Regions</option>
+            <option value="Asia Pacific">Asia Pacific</option>
+            <option value="Europe">Europe</option>
+            <option value="North America">North America</option>
+            <option value="Africa">Africa</option>
+            <option value="Latin America">Latin America</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="filter-risk" class="text-xs text-slate-400 font-medium uppercase tracking-wider whitespace-nowrap">Risk Level</label>
+          <select id="filter-risk" class="filter-select">
+            <option value="all">All Levels</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
+        <div id="record-badge" class="text-xs bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full font-medium border border-slate-600">
+          — records
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="max-w-screen-xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- KPI Cards -->
+    <section>
+      <h2 class="section-title">Key Performance Indicators</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+
+        <!-- KPI 1: Temp Anomaly -->
+        <div class="kpi-card group border-emerald-500/30 hover:border-emerald-500/60">
+          <div class="kpi-icon bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500/25">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="kpi-label">Avg Temp Anomaly</p>
+            <p id="kpi-temp" class="kpi-value text-emerald-400">—</p>
+            <p class="kpi-unit">°C above baseline</p>
+          </div>
+          <div id="kpi-temp-trend" class="kpi-trend"></div>
+        </div>
+
+        <!-- KPI 2: CO2 -->
+        <div class="kpi-card group border-cyan-500/30 hover:border-cyan-500/60">
+          <div class="kpi-icon bg-cyan-500/15 text-cyan-400 group-hover:bg-cyan-500/25">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="kpi-label">Avg CO₂ Concentration</p>
+            <p id="kpi-co2" class="kpi-value text-cyan-400">—</p>
+            <p class="kpi-unit">parts per million</p>
+          </div>
+          <div id="kpi-co2-trend" class="kpi-trend"></div>
+        </div>
+
+        <!-- KPI 3: Renewable Energy -->
+        <div class="kpi-card group border-amber-500/30 hover:border-amber-500/60">
+          <div class="kpi-icon bg-amber-500/15 text-amber-400 group-hover:bg-amber-500/25">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="kpi-label">Renewable Energy Rate</p>
+            <p id="kpi-renewable" class="kpi-value text-amber-400">—</p>
+            <p class="kpi-unit">% of total energy mix</p>
+          </div>
+          <div id="kpi-renewable-trend" class="kpi-trend"></div>
+        </div>
+
+        <!-- KPI 4: Alerts -->
+        <div class="kpi-card group border-rose-500/30 hover:border-rose-500/60">
+          <div class="kpi-icon bg-rose-500/15 text-rose-400 group-hover:bg-rose-500/25">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="kpi-label">Active Weather Alerts</p>
+            <p id="kpi-alerts" class="kpi-value text-rose-400">—</p>
+            <p class="kpi-unit">total active alerts</p>
+          </div>
+          <div id="kpi-alerts-trend" class="kpi-trend"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Charts Row 1 -->
+    <section>
+      <h2 class="section-title">Trend Analysis</h2>
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+        <!-- CO2 Line Chart (spans 2 cols) -->
+        <div class="chart-card xl:col-span-2">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-title">CO₂ Level Trend</h3>
+              <p class="chart-subtitle">Monthly atmospheric CO₂ concentration (ppm)</p>
+            </div>
+            <span class="chart-badge bg-cyan-500/15 text-cyan-400 border-cyan-500/30">Line</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-co2"></canvas>
+          </div>
+        </div>
+
+        <!-- Doughnut Energy Mix -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-title">Energy Mix Breakdown</h3>
+              <p class="chart-subtitle">Avg share across filtered records</p>
+            </div>
+            <span class="chart-badge bg-amber-500/15 text-amber-400 border-amber-500/30">Doughnut</span>
+          </div>
+          <div class="chart-wrapper chart-wrapper--sm">
+            <canvas id="chart-energy"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Charts Row 2 -->
+    <section>
+      <h2 class="section-title">Regional Breakdown</h2>
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+        <!-- Bar Chart Renewable per Region (spans 2 cols) -->
+        <div class="chart-card xl:col-span-2">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-title">Renewable Energy Share per Region</h3>
+              <p class="chart-subtitle">Average renewable energy percentage by region</p>
+            </div>
+            <span class="chart-badge bg-emerald-500/15 text-emerald-400 border-emerald-500/30">Bar</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-renewable"></canvas>
+          </div>
+        </div>
+
+        <!-- Polar Area Risk Distribution -->
+        <div class="chart-card polar-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-title">Regional Risk Distribution</h3>
+              <p class="chart-subtitle">Risk level count by category</p>
+            </div>
+            <span class="chart-badge bg-rose-500/15 text-rose-400 border-rose-500/30">Polar Area</span>
+          </div>
+
+          <!-- Polar canvas with center-label overlay -->
+          <div class="chart-wrapper chart-wrapper--sm polar-wrapper">
+            <canvas id="chart-risk"></canvas>
+            <div id="polar-center" class="polar-center">
+              <span id="polar-center-value" class="polar-center-value">—</span>
+              <span class="polar-center-label">records</span>
+            </div>
+          </div>
+
+          <!-- Risk Level Color Legend Strip -->
+          <div id="risk-legend-strip" class="risk-legend-strip">
+            <div class="risk-legend-item">
+              <span class="risk-legend-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.7)"></span>
+              <span class="risk-legend-text">Low</span>
+              <span id="rl-count-Low" class="risk-legend-count risk-Low">—</span>
+            </div>
+            <div class="risk-legend-item">
+              <span class="risk-legend-dot" style="background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,0.7)"></span>
+              <span class="risk-legend-text">Medium</span>
+              <span id="rl-count-Medium" class="risk-legend-count risk-Medium">—</span>
+            </div>
+            <div class="risk-legend-item">
+              <span class="risk-legend-dot" style="background:#fb923c;box-shadow:0 0 6px rgba(251,146,60,0.7)"></span>
+              <span class="risk-legend-text">High</span>
+              <span id="rl-count-High" class="risk-legend-count risk-High">—</span>
+            </div>
+            <div class="risk-legend-item">
+              <span class="risk-legend-dot" style="background:#f87171;box-shadow:0 0 6px rgba(248,113,113,0.7)"></span>
+              <span class="risk-legend-text">Critical</span>
+              <span id="rl-count-Critical" class="risk-legend-count risk-Critical">—</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Data Table -->
+    <section>
+      <h2 class="section-title">Data Records</h2>
+      <div class="chart-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-700">
+                <th class="table-th">Date</th>
+                <th class="table-th">Region</th>
+                <th class="table-th">Temp Δ (°C)</th>
+                <th class="table-th">CO₂ (ppm)</th>
+                <th class="table-th">Renewable %</th>
+                <th class="table-th">Risk Level</th>
+                <th class="table-th">Alerts</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="border-t border-slate-700/60 mt-10">
+    <div class="max-w-screen-xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <span>Climate Intelligence Dashboard &mdash; ESG Analytics Platform</span>
+      <span>Data source: <code class="text-slate-400">climate_data.json</code></span>
+    </div>
+  </footer>
+
+  <!-- App Script -->
+  <script src="script.js"></script>
+</body>
+</html>
